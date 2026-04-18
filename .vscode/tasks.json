@@ -37,5 +37,13 @@
 			],
 			"label": "mdcal year"
 		},
+		{
+			"type": "cargo",
+			"command": "publish",
+			"problemMatcher": [
+				"$rustc"
+			],
+			"label": "publish"
+		},
 	]
 }
