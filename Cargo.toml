@@ -2,6 +2,7 @@
 name = "mdcal"
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
 description = "A CLI that downloads iCal feeds and renders calendar data as markdown"
 
 [dependencies]
