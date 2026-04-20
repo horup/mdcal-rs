@@ -6,6 +6,7 @@ use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
 
 mod calendar;
 mod fetch;
+mod html;
 mod i18n;
 mod markdown;
 
@@ -85,7 +86,7 @@ fn year_html(ical_text: &str, strings: &i18n::Strings) -> Result<String, String>
     let year = chrono::Utc::now().year();
     let events = calendar::events(ical_text, year..=year)?;
     let months: Vec<(i32, u32)> = (1..=12).map(|m| (year, m)).collect();
-    Ok(markdown::calendar_html(&events, &months, strings))
+    Ok(html::calendar_html(&events, &months, strings))
 }
 
 fn month3_html(ical_text: &str, strings: &i18n::Strings) -> Result<String, String> {
@@ -107,7 +108,7 @@ fn month3_html(ical_text: &str, strings: &i18n::Strings) -> Result<String, Strin
     let years: std::ops::RangeInclusive<i32> = months[0].0..=months.last().unwrap().0;
 
     let events = calendar::events(ical_text, years)?;
-    Ok(markdown::calendar_html(&events, &months, strings))
+    Ok(html::calendar_html(&events, &months, strings))
 }
 
 fn main() {
