@@ -31,18 +31,6 @@ fn day_prefix(s: &Strings, date: NaiveDate) -> (String, Option<String>) {
     }
 }
 
-fn pad_cell(value: &str, width: usize) -> String {
-    let value = value.to_string();
-    if width <= value.len() {
-        return value;
-    }
-
-    let padding = width - value.len();
-    let left = padding / 2;
-    let right = padding - left;
-    format!("{}{}{}", " ".repeat(left), value, " ".repeat(right))
-}
-
 pub fn calendar_html(
     events: &[(NaiveDate, String)],
     months: &[(i32, u32)],
