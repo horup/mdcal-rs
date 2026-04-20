@@ -139,7 +139,7 @@ pub fn calendar_markdown(
                     .iter()
                     .map(|entry| escape_markdown_cell(entry))
                     .collect::<Vec<_>>()
-                    .join("<br>");
+                    .join(", ");
                 if let Some(label) = week_label {
                     let padding = widths[index + 1]
                         .saturating_sub(weekday.len() + value.len() + label.len() + 1);

@@ -18,7 +18,9 @@
 				"--lang",
 				"en",
 				"--format",
-				"html"
+				"html",
+				"--file",
+				"output.html"
 			],
 			"problemMatcher": [
 				"$rustc"

@@ -1,3 +1,4 @@
+use std::fs;
 use std::process;
 
 use chrono::Datelike;
@@ -31,8 +32,12 @@ struct Cli {
     lang: String,
 
     /// Output format
-    #[arg(short, long, default_value = "markdown", global = true)]
+    #[arg(long, default_value = "markdown", global = true)]
     format: Format,
+
+    /// Output file (default is stdout)
+    #[arg(long, global = true)]
+    file: Option<String>,
 
     #[command(subcommand)]
     command: Option<Commands>,
@@ -85,7 +90,7 @@ fn convert_to_html(markdown: &str) -> String {
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
     format!(
-        "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<style>table {{ width: 100%; }}</style>\n</head>\n<body>\n{}</body>\n</html>",
+        "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<style>table {{ width: 100%; }} td {{ border-bottom: 1px solid #ccc; }}</style>\n</head>\n<body>\n{}</body>\n</html>",
         html_output
     )
 }
@@ -121,5 +126,13 @@ fn main() {
         Format::Html => convert_to_html(&output),
     };
 
-    print!("{output}");
+    match cli.file {
+        Some(path) => {
+            fs::write(&path, &output).unwrap_or_else(|error| {
+                eprintln!("error: {error}");
+                process::exit(1);
+            });
+        }
+        None => print!("{output}"),
+    }
 }

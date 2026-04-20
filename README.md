@@ -28,5 +28,6 @@ mdcal https://example.com/calendar.ics month3
 
 ## Options
 
-- `-f, --format`: Output format (markdown or html, default: markdown)
 - `-l, --lang`: Language code (e.g., en, da)
+- `--format`: Output format (markdown or html, default: markdown)
+- `--file`: Output file (default is stdout)
