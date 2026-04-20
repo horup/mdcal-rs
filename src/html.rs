@@ -106,13 +106,11 @@ pub fn calendar_html(
                 } else {
                     format!("{} {}", weekday, value)
                 }
+            } else if let Some(label) = week_label {
+                let padding = widths[index].saturating_sub(weekday.len() + label.len());
+                format!("{}{}{}", weekday, " ".repeat(padding), label)
             } else {
-                if let Some(label) = week_label {
-                    let padding = widths[index].saturating_sub(weekday.len() + label.len());
-                    format!("{}{}{}", weekday, " ".repeat(padding), label)
-                } else {
-                    weekday
-                }
+                weekday
             };
 
             html.push_str(&format!("{:<width$}", cell_content, width = widths[index]));
