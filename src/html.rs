@@ -91,7 +91,7 @@ pub fn calendar_html(
     let mut html = String::new();
     html.push_str("<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n");
     html.push_str("<link href=\"https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap\" rel=\"stylesheet\">\n");
-    html.push_str("<style>body { font-family: 'Roboto Condensed', sans-serif; } table { width: 100%; border-collapse: collapse; } td, th { border-bottom: 1px solid #ccc; padding: 4px; text-align: left; } th { background: #f5f5f5; }</style>\n");
+    html.push_str("<style>body { font-family: 'Roboto Condensed', sans-serif; print-color-adjust: exact; -webkit-print-color-adjust: exact; } table { width: 100%; border-collapse: collapse; } td, th { border-bottom: 1px solid #ccc; padding: 4px; text-align: left; } th { background: #f5f5f5; } .weekend { background: #f0f0f0; }</style>\n");
     html.push_str("</head>\n<body>\n<table>\n<thead>\n<tr>\n<th></th>\n");
 
     #[allow(unused_variables)]
@@ -109,8 +109,15 @@ pub fn calendar_html(
 
         #[allow(unused_variables)]
         for (index, (year, month)) in months.iter().enumerate() {
-            html.push_str("<td>");
             let cell_day = NaiveDate::from_ymd_opt(*year, *month, day);
+            let is_weekend = cell_day
+                .map(|d| d.weekday().number_from_monday() > 5)
+                .unwrap_or(false);
+            if is_weekend {
+                html.push_str("<td class=\"weekend\">");
+            } else {
+                html.push_str("<td>");
+            }
             let (weekday, week_label) = cell_day
                 .map(|d| day_prefix(strings, d))
                 .unwrap_or((String::new(), None));
