@@ -1,18 +1,25 @@
 use std::process;
 
 use chrono::Datelike;
-use clap::{CommandFactory, Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand, ValueEnum};
+use pulldown_cmark::{html, Options, Parser as MdParser};
 
 mod calendar;
 mod fetch;
 mod i18n;
 mod markdown;
 
+#[derive(Clone, Copy, PartialEq, Eq, Subcommand, ValueEnum)]
+enum Format {
+    Markdown,
+    Html,
+}
+
 #[derive(Parser)]
 #[command(
     name = "mdcal",
     version,
-    about = "A CLI application which retrieves the calendar and returns it as markdown"
+    about = "A CLI application which retrieves the calendar and returns it as markdown or html"
 )]
 struct Cli {
     /// iCal feed URL
@@ -22,6 +29,10 @@ struct Cli {
     /// Language code (e.g., en, da)
     #[arg(short, long, default_value = "en", global = true)]
     lang: String,
+
+    /// Output format
+    #[arg(short, long, default_value = "markdown", global = true)]
+    format: Format,
 
     #[command(subcommand)]
     command: Option<Commands>,
@@ -66,6 +77,19 @@ fn month3_markdown(ical_text: &str, strings: &i18n::Strings) -> Result<String, S
     Ok(markdown::calendar_markdown(&events, &months, strings))
 }
 
+fn convert_to_html(markdown: &str) -> String {
+    let mut opts = Options::empty();
+    opts.insert(Options::ENABLE_TABLES);
+    opts.insert(Options::ENABLE_FOOTNOTES);
+    let parser = MdParser::new_ext(markdown, opts);
+    let mut html_output = String::new();
+    html::push_html(&mut html_output, parser);
+    format!(
+        "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<style>table {{ width: 100%; }}</style>\n</head>\n<body>\n{}</body>\n</html>",
+        html_output
+    )
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -76,26 +100,26 @@ fn main() {
         process::exit(1);
     });
 
-    match cli.command {
-        Some(Commands::Year) => {
-            let markdown = year_markdown(&ical_text, &strings).unwrap_or_else(|error| {
-                eprintln!("error: {error}");
-                process::exit(1);
-            });
-
-            print!("{markdown}");
-        }
-        Some(Commands::Month3) => {
-            let markdown = month3_markdown(&ical_text, &strings).unwrap_or_else(|error| {
-                eprintln!("error: {error}");
-                process::exit(1);
-            });
-
-            print!("{markdown}");
-        }
+    let output = match cli.command {
+        Some(Commands::Year) => year_markdown(&ical_text, &strings).unwrap_or_else(|error| {
+            eprintln!("error: {error}");
+            process::exit(1);
+        }),
+        Some(Commands::Month3) => month3_markdown(&ical_text, &strings).unwrap_or_else(|error| {
+            eprintln!("error: {error}");
+            process::exit(1);
+        }),
         None => {
             Cli::command().print_help().expect("failed to print help");
             println!();
+            return;
         }
-    }
+    };
+
+    let output = match cli.format {
+        Format::Markdown => output,
+        Format::Html => convert_to_html(&output),
+    };
+
+    print!("{output}");
 }

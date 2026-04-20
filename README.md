@@ -1,6 +1,6 @@
 # mdcal
 
-`mdcal` is a Rust CLI that downloads an iCal feed from a URL and renders calendar data as markdown.
+`mdcal` is a Rust CLI that downloads an iCal feed from a URL and renders calendar data as markdown or html.
 
 Built using VS Code, OpenCode using Big Pickle.
 
@@ -25,3 +25,8 @@ mdcal https://example.com/calendar.ics month3
 - `mdcal`: shows help
 - `mdcal year`: renders the current year calendar
 - `mdcal month3`: renders the current month and the next two months
+
+## Options
+
+- `-f, --format`: Output format (markdown or html, default: markdown)
+- `-l, --lang`: Language code (e.g., en, da)

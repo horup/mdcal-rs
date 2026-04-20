@@ -16,12 +16,25 @@
 				"${input:icalUrl}",
 				"month3",
 				"--lang",
-				"en"
+				"en",
+				"--format",
+				"html"
 			],
 			"problemMatcher": [
 				"$rustc"
 			],
 			"label": "mdcal month3"
+		},
+		{
+			"type": "cargo",
+			"command": "run",
+			"args": [
+				"help"
+			],
+			"problemMatcher": [
+				"$rustc"
+			],
+			"label": "mdcal help"
 		},
 		{
 			"type": "cargo",
