@@ -16,7 +16,7 @@
 				"${input:icalUrl}",
 				"month3",
 				"--lang",
-				"en",
+				"da",
 				"--format",
 				"html",
 				"--file",
