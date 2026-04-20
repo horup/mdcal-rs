@@ -90,7 +90,7 @@ fn convert_to_html(markdown: &str) -> String {
     let mut html_output = String::new();
     html::push_html(&mut html_output, parser);
     format!(
-        "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<style>table {{ width: 100%; }} td {{ border-bottom: 1px solid #ccc; }}</style>\n</head>\n<body>\n{}</body>\n</html>",
+        "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<link href=\"https://fonts.googleapis.com/css2?family=Roboto&display=swap\" rel=\"stylesheet\">\n<style>body {{ font-family: 'Roboto', sans-serif; }} table {{ width: 100%; border-collapse: collapse; }} td, th {{ border-bottom: 1px solid #ccc; }}</style>\n</head>\n<body>\n{}</body>\n</html>",
         html_output
     )
 }
