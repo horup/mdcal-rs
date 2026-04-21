@@ -53,19 +53,21 @@ pub fn calendar_html(
         }
     }
 
-    let mut widths = Vec::with_capacity(months.len());
-
-    #[allow(unused_variables)]
-    for (year, month) in &months {
-        let width = month_name(strings, *month).len();
-        widths.push(width);
-    }
-
     let mut html = String::new();
     html.push_str("<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n");
     html.push_str("<link href=\"https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap\" rel=\"stylesheet\">\n");
-    html.push_str("<style>body { font-family: 'Roboto Mono', monospace; print-color-adjust: exact; -webkit-print-color-adjust: exact; } table { width: 100%; border-collapse: collapse; } td, th { border-bottom: 1px solid #ccc; padding: 4px; text-align: left; } th { background: #f5f5f5; } .weekend { background: #f0f0f0; }</style>\n");
+    let month_width = if months.is_empty() {
+        100.0
+    } else {
+        100.0 / months.len() as f64
+    };
+    html.push_str(&format!("<style>body {{ font-family: 'Roboto Mono', monospace; print-color-adjust: exact; -webkit-print-color-adjust: exact; }} table {{ width: 100%; table-layout: fixed; border-collapse: collapse; }} col.month-col {{ width: {:.6}%; }} td, th {{ border-bottom: 1px solid #ccc; padding: 4px; text-align: left; overflow-wrap: anywhere; }} th {{ background: #f5f5f5; }} .weekend {{ background: #f0f0f0; }}</style>\n", month_width));
     html.push_str("</head>\n<body>\n<table>\n<thead>\n<tr>\n");
+    html.push_str("<colgroup>\n");
+    for _ in &months {
+        html.push_str("<col class=\"month-col\">\n");
+    }
+    html.push_str("</colgroup>\n");
 
     #[allow(unused_variables)]
     for (index, (year, month)) in months.iter().enumerate() {
@@ -100,20 +102,17 @@ pub fn calendar_html(
                     .collect::<Vec<_>>()
                     .join(", ");
                 if let Some(label) = week_label {
-                    let padding =
-                        widths[index].saturating_sub(weekday.len() + value.len() + label.len() + 2);
-                    format!("{} {} {}{}", weekday, value, " ".repeat(padding), label)
+                    format!("{} {} {}", weekday, value, label)
                 } else {
                     format!("{} {}", weekday, value)
                 }
             } else if let Some(label) = week_label {
-                let padding = widths[index].saturating_sub(weekday.len() + label.len() + 1);
-                format!("{} {}{}", weekday, " ".repeat(padding), label)
+                format!("{} {}", weekday, label)
             } else {
                 weekday
             };
 
-            html.push_str(&format!("{:<width$}", cell_content, width = widths[index]));
+            html.push_str(&cell_content);
             html.push_str("</td>\n");
         }
 
