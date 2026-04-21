@@ -24,7 +24,7 @@ fn day_prefix(s: &Strings, date: NaiveDate) -> (String, Option<String>) {
     let day_num = date.day().to_string();
     let weekday_with_num = format!("{} {}", weekday, day_num);
     if date.weekday().number_from_monday() == 1 {
-        let week_label = format!("[{}{}]", s.week, date.iso_week().week());
+        let week_label = format!("[{} {}]", s.week, date.iso_week().week());
         (weekday_with_num, Some(week_label))
     } else {
         (weekday_with_num, None)
@@ -101,14 +101,14 @@ pub fn calendar_html(
                     .join(", ");
                 if let Some(label) = week_label {
                     let padding =
-                        widths[index].saturating_sub(weekday.len() + value.len() + label.len() + 1);
-                    format!("{} {}{}{}", weekday, value, " ".repeat(padding), label)
+                        widths[index].saturating_sub(weekday.len() + value.len() + label.len() + 2);
+                    format!("{} {} {}{}", weekday, value, " ".repeat(padding), label)
                 } else {
                     format!("{} {}", weekday, value)
                 }
             } else if let Some(label) = week_label {
-                let padding = widths[index].saturating_sub(weekday.len() + label.len());
-                format!("{}{}{}", weekday, " ".repeat(padding), label)
+                let padding = widths[index].saturating_sub(weekday.len() + label.len() + 1);
+                format!("{} {}{}", weekday, " ".repeat(padding), label)
             } else {
                 weekday
             };

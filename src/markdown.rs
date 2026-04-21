@@ -14,7 +14,7 @@ fn weekday_name(s: &Strings, date: NaiveDate) -> &'static str {
 fn day_prefix(s: &Strings, date: NaiveDate) -> (String, Option<String>) {
     let weekday = weekday_name(s, date).to_string();
     if date.weekday().number_from_monday() == 1 {
-        let week_label = format!("[{}{}]", s.week, date.iso_week().week());
+        let week_label = format!("[{} {}]", s.week, date.iso_week().week());
         (weekday, Some(week_label))
     } else {
         (weekday, None)
@@ -142,14 +142,14 @@ pub fn calendar_markdown(
                     .join(", ");
                 if let Some(label) = week_label {
                     let padding = widths[index + 1]
-                        .saturating_sub(weekday.len() + value.len() + label.len() + 1);
-                    format!("{} {}{}{}", weekday, value, " ".repeat(padding), label)
+                        .saturating_sub(weekday.len() + value.len() + label.len() + 2);
+                    format!("{} {} {}{}", weekday, value, " ".repeat(padding), label)
                 } else {
                     format!("{} {}", weekday, value)
                 }
             } else if let Some(label) = week_label {
-                let padding = widths[index + 1].saturating_sub(weekday.len() + label.len());
-                format!("{}{}{}", weekday, " ".repeat(padding), label)
+                let padding = widths[index + 1].saturating_sub(weekday.len() + label.len() + 1);
+                format!("{} {}{}", weekday, " ".repeat(padding), label)
             } else {
                 weekday
             };
