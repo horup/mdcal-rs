@@ -61,7 +61,7 @@ pub fn calendar_html(
     } else {
         100.0 / months.len() as f64
     };
-    html.push_str(&format!("<style>body {{ font-family: 'Roboto Mono', monospace; print-color-adjust: exact; -webkit-print-color-adjust: exact; }} table {{ width: 100%; table-layout: fixed; border-collapse: collapse; }} col.month-col {{ width: {:.6}%; }} td, th {{ border-bottom: 1px solid #ccc; padding: 4px; text-align: left; overflow-wrap: anywhere; }} th {{ background: #f5f5f5; }} .weekend {{ background: #f0f0f0; }}</style>\n", month_width));
+    html.push_str(&format!("<style>body {{ font-family: 'Roboto Mono', monospace; font-size: 12px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }} table {{ width: 100%; table-layout: fixed; border-collapse: collapse; }} col.month-col {{ width: {:.6}%; }} td, th {{ border-bottom: 1px solid #ccc; padding: 4px; text-align: left; overflow-wrap: anywhere; }} th {{ background: #f5f5f5; }} .weekend {{ background: #f0f0f0; }}</style>\n", month_width));
     html.push_str("</head>\n<body>\n<table>\n<thead>\n<tr>\n");
     html.push_str("<colgroup>\n");
     for _ in &months {
