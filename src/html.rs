@@ -1,4 +1,4 @@
-use chrono::{Datelike, NaiveDate};
+use chrono::{Datelike, Local, NaiveDate};
 
 use crate::i18n::Strings;
 
@@ -28,6 +28,14 @@ fn day_prefix(s: &Strings, date: NaiveDate) -> (String, Option<String>) {
         (weekday_with_num, Some(week_label))
     } else {
         (weekday_with_num, None)
+    }
+}
+
+fn past_text(value: String, is_past: bool) -> String {
+    if is_past {
+        format!("<del class=\"past\">{value}</del>")
+    } else {
+        value
     }
 }
 
@@ -61,13 +69,15 @@ pub fn calendar_html(
     } else {
         100.0 / months.len() as f64
     };
-    html.push_str(&format!("<style>body {{ font-family: 'Roboto Mono', monospace; font-size: 12px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }} table {{ width: 100%; table-layout: fixed; border-collapse: collapse; }} col.month-col {{ width: {:.6}%; }} td, th {{ border-bottom: 1px solid #ccc; padding: 4px; text-align: left; overflow-wrap: anywhere; }} th {{ background: #f5f5f5; }} .weekend {{ background: #f0f0f0; }}</style>\n", month_width));
+    html.push_str(&format!("<style>body {{ font-family: 'Roboto Mono', monospace; font-size: 12px; print-color-adjust: exact; -webkit-print-color-adjust: exact; }} table {{ width: 100%; table-layout: fixed; border-collapse: collapse; }} col.month-col {{ width: {:.6}%; }} td, th {{ border-bottom: 1px solid #ccc; padding: 4px; text-align: left; overflow-wrap: anywhere; }} th {{ background: #f5f5f5; }} .weekend {{ background: #f0f0f0; }} .past {{ text-decoration: line-through; }}</style>\n", month_width));
     html.push_str("</head>\n<body>\n<table>\n<thead>\n<tr>\n");
     html.push_str("<colgroup>\n");
     for _ in &months {
         html.push_str("<col class=\"month-col\">\n");
     }
     html.push_str("</colgroup>\n");
+
+    let today = Local::now().date_naive();
 
     #[allow(unused_variables)]
     for (index, (year, month)) in months.iter().enumerate() {
@@ -86,10 +96,12 @@ pub fn calendar_html(
             let is_weekend = cell_day
                 .map(|d| d.weekday().number_from_monday() > 5)
                 .unwrap_or(false);
-            if is_weekend {
-                html.push_str("<td class=\"weekend\">");
-            } else {
-                html.push_str("<td>");
+            let is_past = cell_day.map(|d| d < today).unwrap_or(false);
+            match (is_weekend, is_past) {
+                (true, true) => html.push_str("<td class=\"weekend past\">"),
+                (true, false) => html.push_str("<td class=\"weekend\">"),
+                (false, true) => html.push_str("<td class=\"past\">"),
+                (false, false) => html.push_str("<td>"),
             }
             let (weekday, week_label) = cell_day
                 .map(|d| day_prefix(strings, d))
@@ -102,14 +114,27 @@ pub fn calendar_html(
                     .collect::<Vec<_>>()
                     .join(", ");
                 if let Some(label) = week_label {
-                    format!("{} {} {}", weekday, value, label)
+                    format!(
+                        "{} {} {}",
+                        past_text(weekday, is_past),
+                        past_text(value, is_past),
+                        past_text(label, is_past)
+                    )
                 } else {
-                    format!("{} {}", weekday, value)
+                    format!(
+                        "{} {}",
+                        past_text(weekday, is_past),
+                        past_text(value, is_past)
+                    )
                 }
             } else if let Some(label) = week_label {
-                format!("{} {}", weekday, label)
+                format!(
+                    "{} {}",
+                    past_text(weekday, is_past),
+                    past_text(label, is_past)
+                )
             } else {
-                weekday
+                past_text(weekday, is_past)
             };
 
             html.push_str(&cell_content);
