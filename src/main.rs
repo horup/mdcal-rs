@@ -22,7 +22,6 @@ enum Format {
     version,
     about = "A CLI application which retrieves the calendar and returns it as markdown or html"
 )]
-
 struct Cli {
     /// iCal feed URL
     #[arg(value_name = "ICAL_URL")]
