@@ -21,6 +21,22 @@ fn parse_ical_date(value: &str) -> Option<NaiveDate> {
     NaiveDate::parse_from_str(date_value, "%Y%m%d").ok()
 }
 
+fn parse_event_end(start: NaiveDate, value: Option<&str>) -> NaiveDate {
+    let Some(value) = value else {
+        return start;
+    };
+
+    let Some(end) = parse_ical_date(value) else {
+        return start;
+    };
+
+    if value.contains('T') {
+        end
+    } else {
+        end.checked_sub_signed(Duration::days(1)).unwrap_or(end)
+    }
+}
+
 pub fn parse_rrule(rrule_text: &str) -> Option<RecurrenceRule> {
     let mut frequency = None;
     let mut interval = 1;
@@ -63,7 +79,7 @@ fn next_occurrence(date: NaiveDate, rule: &RecurrenceRule) -> Option<NaiveDate> 
     }
 }
 
-pub fn expand_rrule_events(start: NaiveDate, rrule_text: &str, year: i32) -> Vec<NaiveDate> {
+pub fn expand_rrule_events(start: NaiveDate, rrule_text: &str) -> Vec<NaiveDate> {
     let Some(rule) = parse_rrule(rrule_text) else {
         return Vec::new();
     };
@@ -79,9 +95,7 @@ pub fn expand_rrule_events(start: NaiveDate, rrule_text: &str, year: i32) -> Vec
             }
         }
 
-        if current.year() == year {
-            dates.push(current);
-        }
+        dates.push(current);
 
         seen += 1;
         if let Some(count) = rule.count {
@@ -95,9 +109,28 @@ pub fn expand_rrule_events(start: NaiveDate, rrule_text: &str, year: i32) -> Vec
         };
 
         current = next;
-        if current.year() > year && rule.until.is_none() {
+    }
+
+    dates
+}
+
+fn expand_span(start: NaiveDate, end: NaiveDate, years: &[i32]) -> Vec<NaiveDate> {
+    let mut dates = Vec::new();
+    let mut current = start;
+
+    loop {
+        if years.contains(&current.year()) {
+            dates.push(current);
+        }
+
+        if current >= end {
             break;
         }
+
+        let Some(next) = current.succ_opt() else {
+            break;
+        };
+        current = next;
     }
 
     dates
@@ -117,6 +150,7 @@ pub fn events(
         for event in calendar.events {
             let mut summary = None;
             let mut date = None;
+            let mut end = None;
             let mut recurrence = None;
 
             for property in event.properties {
@@ -131,19 +165,29 @@ pub fn events(
                             }
                         }
                     }
+                    "DTEND" => {
+                        end = property.value;
+                    }
                     "RRULE" => recurrence = property.value,
                     _ => {}
                 }
             }
 
-            if let (Some(date), Some(summary)) = (date, &summary) {
-                events.push((date, summary.clone()));
-            }
+            if let (Some(start), Some(summary)) = (date, summary) {
+                let end = parse_event_end(start, end.as_deref());
 
-            if let (Some(start), Some(rrule), Some(summary)) = (date, recurrence, summary) {
-                for year in &years {
-                    for occurrence in expand_rrule_events(start, &rrule, *year) {
-                        events.push((occurrence, summary.clone()));
+                if let Some(rrule) = recurrence {
+                    let span_days = end.signed_duration_since(start).num_days().max(0);
+                    for occurrence in expand_rrule_events(start, &rrule) {
+                        if let Some(occurrence_end) = occurrence.checked_add_signed(Duration::days(span_days)) {
+                            for day in expand_span(occurrence, occurrence_end, &years) {
+                                events.push((day, summary.clone()));
+                            }
+                        }
+                    }
+                } else {
+                    for day in expand_span(start, end, &years) {
+                        events.push((day, summary.clone()));
                     }
                 }
             }
@@ -152,4 +196,27 @@ pub fn events(
 
     events.sort_by_key(|(date, _)| *date);
     Ok(events)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::events;
+
+    #[test]
+    fn recurring_multi_day_events_fill_each_day() {
+        let ical_text = "BEGIN:VCALENDAR\nBEGIN:VEVENT\nDTSTART:20260110\nDTEND:20260112\nRRULE:FREQ=WEEKLY;COUNT=2\nSUMMARY:Team meeting\nEND:VEVENT\nEND:VCALENDAR\n";
+
+        let events = events(ical_text, 2026..=2026).expect("calendar should parse");
+        let dates: Vec<_> = events.into_iter().map(|(date, summary)| (date.to_string(), summary)).collect();
+
+        assert_eq!(
+            dates,
+            vec![
+                ("2026-01-10".to_string(), "Team meeting".to_string()),
+                ("2026-01-11".to_string(), "Team meeting".to_string()),
+                ("2026-01-17".to_string(), "Team meeting".to_string()),
+                ("2026-01-18".to_string(), "Team meeting".to_string()),
+            ]
+        );
+    }
 }
