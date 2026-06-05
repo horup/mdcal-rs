@@ -158,11 +158,7 @@ pub fn events(
                     "SUMMARY" => summary = property.value,
                     "DTSTART" => {
                         if let Some(value) = property.value {
-                            if let Some(parsed) = parse_ical_date(&value) {
-                                if years.contains(&parsed.year()) {
-                                    date = Some(parsed);
-                                }
-                            }
+                            date = parse_ical_date(&value);
                         }
                     }
                     "DTEND" => {
@@ -216,6 +212,22 @@ mod tests {
                 ("2026-01-11".to_string(), "Team meeting".to_string()),
                 ("2026-01-17".to_string(), "Team meeting".to_string()),
                 ("2026-01-18".to_string(), "Team meeting".to_string()),
+            ]
+        );
+    }
+
+    #[test]
+    fn recurring_events_starting_previous_year_are_included() {
+        let ical_text = "BEGIN:VCALENDAR\nBEGIN:VEVENT\nDTSTART:20251229\nRRULE:FREQ=WEEKLY;COUNT=3\nSUMMARY:Standup\nEND:VEVENT\nEND:VCALENDAR\n";
+
+        let events = events(ical_text, 2026..=2026).expect("calendar should parse");
+        let dates: Vec<_> = events.into_iter().map(|(date, summary)| (date.to_string(), summary)).collect();
+
+        assert_eq!(
+            dates,
+            vec![
+                ("2026-01-05".to_string(), "Standup".to_string()),
+                ("2026-01-12".to_string(), "Standup".to_string()),
             ]
         );
     }
