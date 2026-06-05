@@ -141,15 +141,12 @@ pub fn calendar_markdown(
                     .collect::<Vec<_>>()
                     .join(", ");
                 if let Some(label) = week_label {
-                    let padding = widths[index + 1]
-                        .saturating_sub(weekday.len() + value.len() + label.len() + 2);
-                    format!("{} {} {}{}", weekday, value, " ".repeat(padding), label)
+                    format!("{} {} {}", weekday, label, value)
                 } else {
                     format!("{} {}", weekday, value)
                 }
             } else if let Some(label) = week_label {
-                let padding = widths[index + 1].saturating_sub(weekday.len() + label.len() + 1);
-                format!("{} {}{}", weekday, " ".repeat(padding), label)
+                format!("{} {}", weekday, label)
             } else {
                 weekday
             };

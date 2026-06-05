@@ -117,8 +117,8 @@ pub fn calendar_html(
                     format!(
                         "{} {} {}",
                         past_text(weekday, is_past),
-                        past_text(value, is_past),
-                        past_text(label, is_past)
+                        past_text(label, is_past),
+                        past_text(value, is_past)
                     )
                 } else {
                     format!(
